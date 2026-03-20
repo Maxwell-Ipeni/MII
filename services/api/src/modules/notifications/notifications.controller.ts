@@ -9,7 +9,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dto/notification.dto';
-import { NotificationStatus } from '@prisma/client';
+import { NotificationStatus } from '../../database/enums';
 
 @ApiTags('Notifications')
 @Controller('notifications')

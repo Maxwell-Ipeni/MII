@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsEnum } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { NotificationType, NotificationChannel } from '@prisma/client';
+import { NotificationType, NotificationChannel } from '../../../database/enums';
 
 export class CreateNotificationDto {
   @ApiProperty({ enum: NotificationType })
