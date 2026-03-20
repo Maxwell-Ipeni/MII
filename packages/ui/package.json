@@ -1,0 +1,33 @@
+{
+  "name": "@elo-tech/ui",
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./button": "./src/components/ui/button.tsx",
+    "./card": "./src/components/ui/card.tsx",
+    "./input": "./src/components/ui/input.tsx",
+    "./label": "./src/components/ui/label.tsx",
+    "./textarea": "./src/components/ui/textarea.tsx",
+    "./select": "./src/components/ui/select.tsx",
+    "./tabs": "./src/components/ui/tabs.tsx",
+    "./dialog": "./src/components/ui/dialog.tsx",
+    "./dropdown-menu": "./src/components/ui/dropdown-menu.tsx",
+    "./avatar": "./src/components/ui/avatar.tsx",
+    "./badge": "./src/components/ui/badge.tsx"
+  },
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "tailwind-merge": "^2.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}
