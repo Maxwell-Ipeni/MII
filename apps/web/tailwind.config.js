@@ -19,47 +19,50 @@ module.exports = {
     },
     extend: {
       colors: {
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        border: '#d2d2d7',
+        input: '#d2d2d7',
+        ring: '#0071E3',
+        background: '#FFFFFF',
+        foreground: '#1D1D1F',
         primary: {
-          DEFAULT: '#3B82F6',
-          foreground: '#ffffff',
+          DEFAULT: '#0071E3',
+          foreground: '#FFFFFF',
         },
         secondary: {
-          DEFAULT: '#22C55E',
-          foreground: '#ffffff',
+          DEFAULT: '#F5F5F7',
+          foreground: '#0066CC',
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          DEFAULT: '#FF3B30',
+          foreground: '#FFFFFF',
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: '#F5F5F7',
+          foreground: '#86868b',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: '#0071E3',
+          foreground: '#FFFFFF',
         },
         popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+          DEFAULT: '#FFFFFF',
+          foreground: '#1D1D1F',
         },
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+          DEFAULT: '#FFFFFF',
+          foreground: '#1D1D1F',
         },
+        link: '#0066CC',
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        lg: '980px',
+        md: '980px',
+        sm: '980px',
+        DEFAULT: '980px',
       },
       fontFamily: {
-        sans: ['var(--font-sans)', ...fontFamily.sans],
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'Helvetica', 'Arial', ...fontFamily.sans],
+        heading: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Helvetica Neue', 'Helvetica', 'Arial', ...fontFamily.sans],
       },
       keyframes: {
         'accordion-down': {
