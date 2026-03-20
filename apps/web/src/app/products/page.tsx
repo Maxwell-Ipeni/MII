@@ -189,7 +189,7 @@ export default function ProductsPage() {
                   </CardContent>
                   <CardFooter>
                     <Button className="w-full" asChild>
-                      <Link href={`/products/${product.id}`}>Start Free Trial</Link>
+                      <Link href={product.id === 'logistics' ? '/logistics' : `/products/${product.id}`}>Start Free Trial</Link>
                     </Button>
                   </CardFooter>
                 </Card>

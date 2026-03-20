@@ -118,6 +118,14 @@ const products = [
     features: ['Real-time Stock', 'Low Stock Alerts', 'Barcode Scanning', 'Suppliers'],
     icon: Database,
   },
+  {
+    id: 'logistics',
+    name: 'LogiFlow',
+    description: 'Logistics Aggregator',
+    price: 'KES 3,000/mo',
+    features: ['Multi-courier Comparison', 'Real-time Tracking', 'Delivery Analytics', 'Automated Scheduling'],
+    icon: Truck,
+  },
 ];
 
 const industries = [
