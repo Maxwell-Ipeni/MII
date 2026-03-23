@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@elo-tech/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@elo-tech/ui/card';
 import { Badge } from '@elo-tech/ui/badge';
@@ -36,12 +37,30 @@ import {
   ChevronRight,
   Layers,
   Server,
-  Lock
+  Lock,
+  Play,
+  Pause,
+  RotateCcw,
+  Sparkles,
+  Target,
+  TrendingUp,
+  ArrowDown,
+  Send,
+  MousePointer,
+  Cpu as Chip,
+  Network,
+  Lock as Security,
+  Gauge,
+  Loader2,
+  Copy,
+  Check
 } from 'lucide-react';
 
 const BRAND_NAME = "Elo Tech";
 const TAGLINE = "Building Websites, Software, and AI Systems for Modern Businesses";
-const CONTACT_EMAIL = "hello@elotech.ke";
+const CONTACT_EMAIL = "maxwelipeni1@gmail.com";
+const CONTACT_PHONE = "+254768610735";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 const scrollToSection = (id: string) => {
   const element = document.getElementById(id);
@@ -95,36 +114,49 @@ const systems = [
 
 const products = [
   {
-    id: 'smartpos',
-    name: 'SmartPOS',
-    description: 'Point of Sale System',
-    price: 'KES 2,500/mo',
-    features: ['Inventory Management', 'Sales Tracking', 'Multi-branch', 'M-Pesa Integration'],
+    id: 'business-software',
+    name: 'Business Software',
+    description: 'Custom ERP & Business Solutions',
+    price: 'Custom',
+    features: ['Inventory Management', 'CRM', 'Accounting', 'Reporting'],
     icon: ShoppingCart,
-  },
-  {
-    id: 'customerhub',
-    name: 'CustomerHub',
-    description: 'CRM Software',
-    price: 'KES 1,800/mo',
-    features: ['Contact Management', 'Lead Tracking', 'Email Campaigns', 'Analytics'],
-    icon: Users,
-  },
-  {
-    id: 'stockpro',
-    name: 'StockPro',
-    description: 'Inventory Management',
-    price: 'KES 1,500/mo',
-    features: ['Real-time Stock', 'Low Stock Alerts', 'Barcode Scanning', 'Suppliers'],
-    icon: Database,
+    link: '/business-software',
   },
   {
     id: 'logistics',
-    name: 'LogiFlow',
-    description: 'Logistics Aggregator',
-    price: 'KES 3,000/mo',
-    features: ['Multi-courier Comparison', 'Real-time Tracking', 'Delivery Analytics', 'Automated Scheduling'],
+    name: 'Logistics Platform',
+    description: 'Fleet & Delivery Management',
+    price: 'Custom',
+    features: ['Real-time Tracking', 'Route Optimization', 'Driver Management', 'Analytics'],
     icon: Truck,
+    link: '/logistics',
+  },
+  {
+    id: 'products',
+    name: 'E-Commerce',
+    description: 'Online Store Solutions',
+    price: 'Custom',
+    features: ['Product Catalog', 'Cart & Checkout', 'Payment Integration', 'Order Management'],
+    icon: Database,
+    link: '/products',
+  },
+  {
+    id: 'services',
+    name: 'Service Booking',
+    description: 'Appointment & Booking System',
+    price: 'Custom',
+    features: ['Online Scheduling', 'Customer Portal', 'Payment Processing', 'Notifications'],
+    icon: Users,
+    link: '/services',
+  },
+  {
+    id: 'ai-automation',
+    name: 'AI Automation',
+    description: 'AI-Powered Business Automation',
+    price: 'Custom',
+    features: ['Smart Workflows', 'AI Chatbots', 'Data Analysis', 'Automation'],
+    icon: Brain,
+    link: '/ai-automation',
   },
 ];
 
@@ -165,36 +197,146 @@ const caseStudies = [
 
 export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState<{role: string, content: string}[]>([
-    { role: 'assistant', content: 'Hi! I\'m Elo Tech\'s AI assistant. How can I help you today?' }
+  const [chatMessages, setChatMessages] = useState<{role: string, content: string, timestamp: number}[]>([
+    { role: 'assistant', content: 'Hi! I\'m Elo Tech\'s AI assistant. How can I help you today?', timestamp: Date.now() }
   ]);
   const [chatInput, setChatInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [workflowRunning, setWorkflowRunning] = useState(false);
+  const [workflowStep, setWorkflowStep] = useState(-1);
+  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
+  const [contactStatus, setContactStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [contactError, setContactError] = useState('');
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactStatus('loading');
+    setContactError('');
+
+    try {
+      const res = await fetch(`${API_URL}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactForm),
+      });
+
+      if (!res.ok) throw new Error('Failed to send message');
+
+      setContactStatus('success');
+      setContactForm({ name: '', email: '', message: '' });
+    } catch (err) {
+      setContactStatus('error');
+      setContactError('Failed to send message. Please try again.');
+    }
+  };
+
+  const scrollToBottom = () => {
+    chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages]);
+
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash) {
+      scrollToSection(hash);
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
+  const chatbotResponses: Record<string, string> = {
+    'price': 'Our pricing starts from KES 1,500/month depending on the product. Would you like me to send you a detailed pricing breakdown?',
+    'pricing': 'Our pricing starts from KES 1,500/month depending on the product. Would you like me to send you a detailed pricing breakdown?',
+    'cost': 'Our pricing starts from KES 1,500/month depending on the product. Would you like me to send you a detailed pricing breakdown?',
+    'demo': 'I\'d be happy to arrange a demo! Our team typically schedules demos within 24-48 hours. What time works best for you?',
+    'contact': 'You can reach us at maxwelipeni1@gmail.com or call +254768610735. Would you like me to have our team contact you directly?',
+    'products': 'We offer SmartPOS, CustomerHub, StockPro, and LogiFlow. Each is tailored for specific business needs. Which product interests you?',
+    'features': 'Our products include inventory management, CRM, analytics, M-Pesa integration, and more. What specific feature are you looking for?',
+    'default': 'Thanks for your interest! Our team will get back to you within 24 hours with a customized solution for your business needs.'
+  };
+
+  const getChatbotResponse = (input: string): string => {
+    const lowerInput = input.toLowerCase();
+    for (const [key, response] of Object.entries(chatbotResponses)) {
+      if (lowerInput.includes(key)) return response;
+    }
+    return chatbotResponses.default;
+  };
 
   const sendChatMessage = () => {
     if (!chatInput.trim()) return;
-    const userMsg = { role: 'user', content: chatInput };
+    const userMsg = { role: 'user', content: chatInput, timestamp: Date.now() };
     setChatMessages(prev => [...prev, userMsg]);
+    const currentInput = chatInput;
     setChatInput('');
+    setIsTyping(true);
     
     setTimeout(() => {
+      const response = getChatbotResponse(currentInput);
       setChatMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'Thanks for reaching out! Our team will get back to you within 24 hours. Would you like to schedule a demo?' 
+        content: response,
+        timestamp: Date.now()
       }]);
-    }, 1000);
+      setIsTyping(false);
+    }, 1500);
+  };
+
+  const runWorkflow = () => {
+    if (workflowRunning) return;
+    setWorkflowRunning(true);
+    setWorkflowStep(0);
+    
+    const steps = [
+      { label: 'Data Input', duration: 1000 },
+      { label: 'AI Processing', duration: 2000 },
+      { label: 'System Integration', duration: 1500 },
+      { label: 'Analytics', duration: 1000 },
+    ];
+
+    let currentStep = 0;
+    const runStep = () => {
+      if (currentStep < steps.length) {
+        setWorkflowStep(currentStep);
+        setTimeout(() => {
+          currentStep++;
+          if (currentStep < steps.length) {
+            runStep();
+          } else {
+            setWorkflowRunning(false);
+            setWorkflowStep(-1);
+          }
+        }, steps[currentStep].duration);
+      }
+    };
+    runStep();
+  };
+
+  const resetWorkflow = () => {
+    setWorkflowRunning(false);
+    setWorkflowStep(-1);
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+      {/* Navigation - Glass Effect */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-lg shadow-primary/5">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <motion.div 
+            whileHover={{ scale: 1.02 }}
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => scrollToSection('hero')}
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/30">
               <span className="text-white font-bold text-xl">E</span>
             </div>
-            <span className="text-xl font-bold">{BRAND_NAME}</span>
-          </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{BRAND_NAME}</span>
+          </motion.div>
           
           <button 
             className="md:hidden p-2"
@@ -213,7 +355,7 @@ export default function HomePage() {
                 {item}
               </button>
             ))}
-            <Button onClick={() => scrollToSection('contact')}>
+            <Button onClick={() => scrollToSection('contact')} className="px-4 py-2">
               Get Started
             </Button>
           </nav>
@@ -235,7 +377,7 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 relative overflow-hidden">
+      <section id="hero" className="pt-32 pb-20 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
         
         {/* Animated System Diagram */}
@@ -279,7 +421,7 @@ export default function HomePage() {
             transition={{ duration: 0.6 }}
             className="max-w-3xl"
           >
-            <Badge variant="secondary" className="mb-6">
+            <Badge variant="secondary" className="mb-6 text-lg px-4 py-1">
               Premium Software Agency
             </Badge>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
@@ -290,10 +432,10 @@ export default function HomePage() {
               that help modern businesses grow and scale.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button onClick={() => scrollToSection('projects')} size="lg" className="gap-2">
+              <Button onClick={() => scrollToSection('projects')} size="lg" className="gap-2 px-6 py-3">
                 View Our Work <ArrowRight className="h-4 w-4" />
               </Button>
-              <Button onClick={() => scrollToSection('contact')} size="lg" variant="outline">
+              <Button onClick={() => scrollToSection('contact')} size="lg" variant="outline" className="px-6 py-3">
                 Contact Us
               </Button>
             </div>
@@ -325,7 +467,7 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge variant="outline" className="mb-4">Our Capabilities</Badge>
+            <Badge variant="outline" className="mb-4 text-lg px-4 py-1">Our Capabilities</Badge>
             <h2 className="text-4xl font-bold mb-4">What We Do Best</h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
               Comprehensive digital solutions tailored to transform your business
@@ -340,12 +482,16 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -8 }}
               >
-                <Card className="h-full hover:shadow-lg transition-shadow">
+                <Card className="h-full glass-card hover:shadow-2xl transition-all duration-300">
                   <CardHeader>
-                    <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                    <motion.div 
+                      whileHover={{ scale: 1.1 }}
+                      className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center mb-4"
+                    >
                       <cap.icon className="h-7 w-7 text-primary" />
-                    </div>
+                    </motion.div>
                     <CardTitle className="text-xl">{cap.title}</CardTitle>
                     <CardDescription>{cap.description}</CardDescription>
                   </CardHeader>
@@ -353,7 +499,7 @@ export default function HomePage() {
                     <ul className="space-y-2">
                       {cap.features.map((feature) => (
                         <li key={feature} className="flex items-center gap-2 text-sm">
-                          <ChevronRight className="h-4 w-4 text-primary" />
+                          <ChevronRight className="h-4 w-4 text-primary flex-shrink-0" />
                           {feature}
                         </li>
                       ))}
@@ -375,7 +521,7 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge variant="outline" className="mb-4">Our Systems</Badge>
+            <Badge variant="outline" className="mb-4 text-lg px-4 py-1">Our Systems</Badge>
             <h2 className="text-4xl font-bold mb-4">Powerful Systems We Build</h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
               End-to-end solutions designed to streamline operations and drive growth
@@ -390,12 +536,16 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -8 }}
               >
-                <Card className="h-full group hover:shadow-lg transition-all">
+                <Card className="h-full glass-card hover:shadow-2xl transition-all duration-300">
                   <CardHeader>
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <motion.div 
+                      whileHover={{ scale: 1.1 }}
+                      className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4 shadow-lg"
+                    >
                       <system.icon className="h-8 w-8 text-white" />
-                    </div>
+                    </motion.div>
                     <CardTitle className="text-2xl">{system.title}</CardTitle>
                     <CardDescription>{system.description}</CardDescription>
                   </CardHeader>
@@ -403,7 +553,7 @@ export default function HomePage() {
                     <ul className="space-y-3">
                       {system.features.map((feature) => (
                         <li key={feature} className="flex items-center gap-3">
-                          <div className="w-2 h-2 rounded-full bg-secondary" />
+                          <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary to-secondary flex-shrink-0" />
                           {feature}
                         </li>
                       ))}
@@ -412,6 +562,109 @@ export default function HomePage() {
                 </Card>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Architecture Visual - Flow Diagram */}
+      <section className="py-24 px-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-to-r from-primary/5 via-secondary/5 to-green-500/5 rounded-full blur-3xl" />
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <Badge variant="outline" className="mb-4 bg-white/10 text-white border-white/20 text-lg px-4 py-1">Architecture</Badge>
+            <h2 className="text-4xl font-bold text-white mb-4">How Our Systems Work</h2>
+            <p className="text-slate-300 max-w-2xl mx-auto">
+              Seamless integration from lead capture to customer engagement
+            </p>
+          </motion.div>
+
+          <div className="relative">
+            <div className="flex flex-wrap justify-center items-center gap-6 md:gap-0">
+              {[
+                { icon: Globe, label: 'Website', color: 'from-blue-500 to-blue-600', desc: 'Lead Capture', borderColor: 'border-blue-500/30' },
+                { icon: Target, label: 'Lead', color: 'from-purple-500 to-purple-600', desc: 'Qualification', borderColor: 'border-purple-500/30' },
+                { icon: Workflow, label: 'Automation', color: 'from-yellow-500 to-orange-500', desc: 'Processing', borderColor: 'border-yellow-500/30' },
+                { icon: Database, label: 'CRM', color: 'from-green-500 to-emerald-500', desc: 'Management', borderColor: 'border-green-500/30' },
+                { icon: MessageSquare, label: 'Notify', color: 'from-cyan-500 to-teal-500', desc: 'Engagement', borderColor: 'border-cyan-500/30' },
+              ].map((step, index) => (
+                <motion.div
+                  key={step.label}
+                  initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                  whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.12, type: 'spring', stiffness: 200 }}
+                  className="relative flex flex-col items-center group"
+                >
+                  <motion.div
+                    whileHover={{ scale: 1.1, y: -5 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                    className={`relative w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-2xl cursor-pointer z-10 border-2 ${step.borderColor}`}
+                  >
+                    <div className="absolute inset-0 rounded-2xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <step.icon className="h-12 w-12 md:h-14 md:w-14 text-white drop-shadow-lg" />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50" />
+                  </motion.div>
+                  
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.12 + 0.2 }}
+                    className="mt-4 text-center"
+                  >
+                    <p className="text-white font-bold text-base md:text-lg">{step.label}</p>
+                    <p className="text-slate-400 text-sm mt-1">{step.desc}</p>
+                  </motion.div>
+
+                  {index < 4 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.12 + 0.3 }}
+                      className="hidden md:flex absolute top-14 -right-10 items-center"
+                    >
+                      <motion.div
+                        animate={{ x: [0, 8, 0] }}
+                        transition={{ repeat: Infinity, duration: 2, delay: index * 0.3 }}
+                        className="flex items-center"
+                      >
+                        <div className="w-16 h-0.5 bg-gradient-to-r from-slate-600 to-slate-500 rounded-full" />
+                        <ArrowRight className="h-5 w-5 text-slate-400 -ml-1" />
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5 }}
+              className="mt-16 text-center"
+            >
+              <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/10 shadow-xl">
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  className="w-3 h-3 rounded-full bg-green-400 shadow-lg shadow-green-400/60"
+                />
+                <span className="text-white font-medium">Real-time data flow active</span>
+                <span className="text-slate-400 text-sm ml-2">•</span>
+                <span className="text-slate-400 text-sm">Instant processing</span>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -425,14 +678,14 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge className="mb-4 bg-primary text-primary-foreground">Our Products</Badge>
-            <h2 className="text-4xl font-bold mb-4">SaaS Products</h2>
+            <Badge className="mb-4 bg-primary text-primary-foreground text-lg px-4 py-1">Our Products</Badge>
+            <h2 className="text-4xl font-bold mb-4">Solutions</h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
               Production-ready software solutions you can start using today
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product, index) => (
               <motion.div
                 key={product.id}
@@ -440,17 +693,21 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -8 }}
               >
-                <Card className="h-full flex flex-col">
+                <Card className="h-full flex flex-col glass-card hover:shadow-2xl transition-all duration-300">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <Badge variant={index === 0 ? 'default' : index === 1 ? 'secondary' : 'outline'}>
+                      <Badge variant={index === 0 ? 'default' : index === 1 ? 'secondary' : 'outline'} className="text-sm px-3 py-0.5">
                         {index === 0 ? 'Popular' : index === 1 ? 'New' : 'Available'}
                       </Badge>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mt-2">
-                      <product.icon className="h-6 w-6 text-secondary" />
-                    </div>
+                    <motion.div 
+                      whileHover={{ scale: 1.1 }}
+                      className="w-16 h-16 rounded-xl bg-gradient-to-br from-secondary/20 to-green-500/20 flex items-center justify-center mt-2"
+                    >
+                      <product.icon className="h-10 w-10 text-secondary" />
+                    </motion.div>
                     <CardTitle className="text-xl mt-4">{product.name}</CardTitle>
                     <CardDescription>{product.description}</CardDescription>
                   </CardHeader>
@@ -459,14 +716,16 @@ export default function HomePage() {
                     <ul className="space-y-2 mb-6 flex-1">
                       {product.features.map((feature) => (
                         <li key={feature} className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-secondary" />
+                          <CheckCircle2 className="h-4 w-4 text-secondary flex-shrink-0" />
                           {feature}
                         </li>
                       ))}
                     </ul>
-                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold">
-                      Start Free Trial
-                    </Button>
+                    <Link href={product.link}>
+                      <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-semibold shadow-lg shadow-green-500/25 py-3">
+                        View Project
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -484,7 +743,7 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge variant="outline" className="mb-4">Industries</Badge>
+            <Badge variant="outline" className="mb-4 text-lg px-4 py-1">Industries</Badge>
             <h2 className="text-4xl font-bold mb-4">Solutions by Industry</h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
               Specialized systems tailored to specific industry needs
@@ -499,9 +758,15 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.05 }}
+                whileHover={{ y: -8, scale: 1.02 }}
               >
-                <Card className="text-center p-6 hover:shadow-lg transition-shadow cursor-pointer">
-                  <industry.icon className="h-10 w-10 mx-auto text-primary mb-3" />
+                <Card className="text-center p-6 glass-card hover:shadow-2xl transition-all duration-300 cursor-pointer">
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    className="inline-flex"
+                  >
+                    <industry.icon className="h-10 w-10 mx-auto text-primary mb-3" />
+                  </motion.div>
                   <div className="text-2xl font-bold">{industry.count}</div>
                   <div className="text-slate-600 text-sm">{industry.name}</div>
                 </Card>
@@ -520,7 +785,7 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge className="mb-4 bg-secondary text-secondary-foreground">Case Studies</Badge>
+            <Badge className="mb-4 bg-secondary text-secondary-foreground text-lg px-4 py-1">Case Studies</Badge>
             <h2 className="text-4xl font-bold mb-4">Success Stories</h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
               Real results from real clients who transformed their businesses
@@ -535,8 +800,9 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -4 }}
               >
-                <Card>
+                <Card className="glass-card hover:shadow-2xl transition-all duration-300">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
@@ -580,7 +846,7 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge variant="outline" className="mb-4">Interactive Demo</Badge>
+            <Badge variant="outline" className="mb-4 text-lg px-4 py-1">Interactive Demo</Badge>
             <h2 className="text-4xl font-bold mb-4">Experience Our Technology</h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
               Try our AI chatbot and see how our systems work
@@ -588,101 +854,235 @@ export default function HomePage() {
           </motion.div>
 
           <div className="grid lg:grid-cols-2 gap-8">
-            {/* Chatbot Demo */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bot className="h-5 w-5 text-primary" />
-                  AI Chatbot Demo
-                </CardTitle>
-                <CardDescription>
-                  Try our intelligent chatbot that understands context and provides relevant responses
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-muted rounded-lg p-4 h-80 flex flex-col">
-                  <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-                    {chatMessages.map((msg, i) => (
-                      <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[80%] rounded-lg p-3 ${
-                          msg.role === 'user' 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'bg-muted-foreground/10'
-                        }`}>
-                          {msg.content}
-                        </div>
+            {/* Chatbot Demo - Enhanced */}
+            <motion.div
+              whileHover={{ y: -4 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
+              <Card className="border-0">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5">
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                      <Bot className="h-4 w-4 text-white" />
+                    </div>
+                    AI Chatbot Demo
+                  </CardTitle>
+                  <CardDescription>
+                    Try our intelligent chatbot that understands context and provides relevant responses
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="bg-gradient-to-b from-white to-slate-50 rounded-lg mx-4 my-4 h-72 flex flex-col border-2 border-slate-200 shadow-inner">
+                    <div className="flex-1 overflow-y-auto space-y-3 p-3">
+                      <AnimatePresence>
+                        {chatMessages.map((msg, i) => (
+                          <motion.div
+                            key={msg.timestamp}
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{ duration: 0.2 }}
+                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
+                              msg.role === 'user' 
+                                ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/25' 
+                                : 'bg-white border border-slate-200 text-slate-700 shadow-sm'
+                            }`}>
+                              <p className="text-sm">{msg.content}</p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                      {isTyping && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="flex justify-start"
+                        >
+                          <div className="bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
+                            <div className="flex gap-1">
+                              <motion.div
+                                animate={{ y: [0, -5, 0] }}
+                                transition={{ repeat: Infinity, duration: 0.6 }}
+                                className="w-2 h-2 rounded-full bg-slate-400"
+                              />
+                              <motion.div
+                                animate={{ y: [0, -5, 0] }}
+                                transition={{ repeat: Infinity, duration: 0.6, delay: 0.1 }}
+                                className="w-2 h-2 rounded-full bg-slate-400"
+                              />
+                              <motion.div
+                                animate={{ y: [0, -5, 0] }}
+                                transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }}
+                                className="w-2 h-2 rounded-full bg-slate-400"
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                      <div ref={chatMessagesEndRef} />
+                    </div>
+                    <div className="p-3 border-t bg-white/50">
+                      <div className="flex gap-2">
+                        <Input 
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && sendChatMessage()}
+                          placeholder="Ask about pricing, demo..."
+                          className="border-slate-200 focus:border-primary"
+                        />
+                        <Button 
+                          onClick={sendChatMessage}
+                          disabled={!chatInput.trim() || isTyping}
+                          className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg shadow-primary/25"
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Workflow Animation - Enhanced */}
+            <motion.div
+              whileHover={{ y: -4 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
+              <Card className="border-0">
+                <CardHeader className="bg-gradient-to-r from-secondary/5 to-green-500/5">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-secondary to-green-500 flex items-center justify-center">
+                        <Workflow className="h-4 w-4 text-white" />
+                      </div>
+                      System Workflow
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={resetWorkflow}
+                        className="h-8"
+                      >
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Reset
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={runWorkflow}
+                        disabled={workflowRunning}
+                        className="h-9 px-5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg shadow-green-500/30 border-0"
+                      >
+                        {workflowRunning ? (
+                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                        ) : (
+                          <Play className="h-4 w-4 mr-1.5 fill-current" />
+                        )}
+                        {workflowRunning ? 'Running...' : 'Run Demo'}
+                      </Button>
+                    </div>
+                  </div>
+                  <CardDescription>
+                    Visualize how our automation systems process data in real-time
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="relative">
+                    {[
+                      { icon: Layers, label: 'Data Input', color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-100', iconColor: 'text-blue-600' },
+                      { icon: Brain, label: 'AI Processing', color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-100', iconColor: 'text-purple-600' },
+                      { icon: Server, label: 'System Integration', color: 'from-yellow-500 to-orange-500', bgColor: 'bg-yellow-100', iconColor: 'text-yellow-600' },
+                      { icon: BarChart3, label: 'Analytics', color: 'from-green-500 to-emerald-500', bgColor: 'bg-green-100', iconColor: 'text-green-600' },
+                    ].map((step, index) => (
+                      <div key={step.label} className="relative">
+                        <motion.div
+                          className="flex items-center gap-4"
+                        >
+                          <motion.div
+                            animate={workflowStep >= index ? { scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] } : {}}
+                            transition={workflowStep >= index ? { duration: 0.5 } : {}}
+                            className={`w-14 h-14 rounded-xl ${step.bgColor} flex items-center justify-center shadow-lg z-10 relative`}
+                          >
+                            {workflowStep > index ? (
+                              <CheckCircle2 className={`h-7 w-7 ${step.iconColor}`} />
+                            ) : workflowStep === index ? (
+                              <motion.div
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ repeat: Infinity, duration: 1 }}
+                              >
+                                <Loader2 className={`h-7 w-7 ${step.iconColor} animate-spin`} />
+                              </motion.div>
+                            ) : (
+                              <step.icon className={`h-7 w-7 ${step.iconColor}`} />
+                            )}
+                          </motion.div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`font-semibold ${workflowStep >= index ? 'text-slate-900' : 'text-slate-500'}`}>
+                                {step.label}
+                              </span>
+                              {workflowStep > index && (
+                                <motion.span
+                                  initial={{ opacity: 0, scale: 0 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  className="text-xs text-green-600 font-medium"
+                                >
+                                  ✓ Complete
+                                </motion.span>
+                              )}
+                            </div>
+                            <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                              <motion.div 
+                                initial={{ width: 0 }}
+                                animate={workflowStep >= index ? { width: '100%' } : { width: '0%' }}
+                                transition={{ duration: workflowStep === index ? 0.5 : 0 }}
+                                className={`h-full bg-gradient-to-r ${step.color} rounded-full`}
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                        {index < 3 && (
+                          <div className="absolute left-7 top-14 -bottom-4 w-0.5 bg-slate-200 z-0">
+                            <motion.div 
+                              initial={{ height: 0 }}
+                              animate={workflowStep > index ? { height: '100%' } : { height: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className={`w-full bg-gradient-to-b ${step.color} rounded-full`}
+                            />
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
-                  <div className="flex gap-2">
-                    <Input 
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()}
-                      placeholder="Type your message..."
-                    />
-                    <Button onClick={sendChatMessage}>
-                      Send
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Workflow Animation */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Workflow className="h-5 w-5 text-secondary" />
-                  System Workflow
-                </CardTitle>
-                <CardDescription>
-                  Visualize how our automation systems process data in real-time
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { icon: Layers, label: 'Data Input', color: 'primary', delay: 0 },
-                    { icon: Brain, label: 'AI Processing', color: 'secondary', delay: 1 },
-                    { icon: Server, label: 'System Integration', color: 'yellow-500', delay: 2 },
-                    { icon: BarChart3, label: 'Analytics', color: 'green-500', delay: 3 },
-                  ].map((step, index) => (
-                    <motion.div
-                      key={step.label}
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: step.delay * 0.2 }}
-                      className="flex items-center gap-4"
-                    >
-                      <div className={`w-12 h-12 rounded-xl bg-${step.color}/10 flex items-center justify-center`}>
-                        <step.icon className={`h-6 w-6 text-${step.color}`} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">{step.label}</span>
-                          {index < 3 && (
-                            <ChevronRight className="h-4 w-4 text-slate-600" />
-                          )}
-                        </div>
-                        <div className="h-2 bg-muted rounded-full mt-2 overflow-hidden">
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            whileInView={{ width: '100%' }}
-                            transition={{ duration: 0.5, delay: step.delay * 0.2 }}
-                            className={`h-full bg-${step.color} rounded-full`}
-                          />
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  
+                  {/* Progress Stats */}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: workflowStep >= 0 ? 1 : 0 }}
+                    className="mt-6 p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border"
+                  >
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-600">Workflow Progress</span>
+                      <span className="font-bold text-primary">
+                        {workflowStep < 0 ? '0' : Math.round(((workflowStep + 1) / 4) * 100)}%
+                      </span>
+                    </div>
+                    <div className="mt-2 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${workflowStep < 0 ? 0 : ((workflowStep + 1) / 4) * 100}%` }}
+                        className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+                      />
+                    </div>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
-        </div>
-      </section>
+          </div>
+        </section>
 
       {/* Contact Section */}
       <section id="contact" className="py-24 px-4">
@@ -694,34 +1094,75 @@ export default function HomePage() {
             className="max-w-2xl mx-auto"
           >
             <div className="text-center mb-12">
-              <Badge className="mb-4 bg-primary text-primary-foreground">Contact</Badge>
+              <Badge className="mb-4 bg-primary text-primary-foreground text-lg px-4 py-1">Contact</Badge>
               <h2 className="text-4xl font-bold mb-4">Let's Work Together</h2>
               <p className="text-slate-600">
                 Ready to transform your business? Get in touch today.
               </p>
             </div>
 
-            <Card>
+            <Card className="glass-card hover:shadow-2xl transition-all duration-300">
               <CardContent className="p-6">
-                <form className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Name</Label>
-                      <Input placeholder="Your name" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Email</Label>
-                      <Input type="email" placeholder="you@company.com" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Message</Label>
-                    <Textarea placeholder="Tell us about your project..." className="min-h-[120px]" />
-                  </div>
-                  <Button type="submit" className="w-full gap-2">
-                    Send Message <Mail className="h-4 w-4" />
-                  </Button>
-                </form>
+                <AnimatePresence mode="wait">
+                  {contactStatus === 'success' ? (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-center py-8"
+                    >
+                      <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
+                      <h3 className="text-2xl font-bold mb-2">Message Sent!</h3>
+                      <p className="text-slate-600 mb-4">Thank you for reaching out. We'll get back to you soon.</p>
+                      <Button onClick={() => setContactStatus('idle')} variant="outline">
+                        Send Another Message
+                      </Button>
+                    </motion.div>
+                  ) : (
+                    <form onSubmit={handleContactSubmit} className="space-y-4">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Name</Label>
+                          <Input
+                            placeholder="Your name"
+                            value={contactForm.name}
+                            onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Email</Label>
+                          <Input
+                            type="email"
+                            placeholder="you@company.com"
+                            value={contactForm.email}
+                            onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Message</Label>
+                        <Textarea
+                          placeholder="Tell us about your project..."
+                          className="min-h-[120px]"
+                          value={contactForm.message}
+                          onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                          required
+                        />
+                      </div>
+                      {contactStatus === 'error' && (
+                        <p className="text-red-500 text-sm">{contactError}</p>
+                      )}
+                      <Button type="submit" className="w-full gap-2 py-3" disabled={contactStatus === 'loading'}>
+                        {contactStatus === 'loading' ? (
+                          <>Sending...</>
+                        ) : (
+                          <>Send Message <Mail className="h-4 w-4" /></>
+                        )}
+                      </Button>
+                    </form>
+                  )}
+                </AnimatePresence>
               </CardContent>
             </Card>
 
@@ -732,7 +1173,7 @@ export default function HomePage() {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-5 w-5" />
-                <span>+254 700 000 000</span>
+                <span>{CONTACT_PHONE}</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="h-5 w-5" />

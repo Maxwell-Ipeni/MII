@@ -5,14 +5,18 @@ import {
   Param,
   ParseUUIDPipe,
   Body,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dto/notification.dto';
 import { NotificationStatus } from '../../database/enums';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 
 @ApiTags('Notifications')
 @Controller('notifications')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 

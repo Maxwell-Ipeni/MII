@@ -121,7 +121,7 @@ export default function ProductsPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <Badge variant="secondary" className="mb-4">SaaS Products</Badge>
+            <Badge variant="secondary" className="mb-4">Solutions</Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
               Ready-to-Use Software Solutions
             </h1>
@@ -145,7 +145,7 @@ export default function ProductsPage() {
       <section id="products" className="py-24">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold">Our SaaS Products</h2>
+            <h2 className="text-3xl font-bold">Our Solutions</h2>
             <p className="mt-4 text-muted-foreground">Choose the perfect solution for your business</p>
           </div>
           

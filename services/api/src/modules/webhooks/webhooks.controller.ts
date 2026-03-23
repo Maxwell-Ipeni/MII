@@ -8,13 +8,17 @@ import {
   Param,
   ParseUUIDPipe,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { WebhooksService } from './webhooks.service';
 import { CreateWebhookDto, UpdateWebhookDto } from './dto/webhook.dto';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 
 @ApiTags('Webhooks')
 @Controller('webhooks')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 export class WebhooksController {
   constructor(private readonly webhooksService: WebhooksService) {}
 

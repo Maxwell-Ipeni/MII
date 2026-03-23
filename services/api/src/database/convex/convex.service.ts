@@ -1,11 +1,13 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ConvexService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(ConvexService.name);
   private convexUrl: string;
   private adminKey: string;
   private client: unknown = null;
+  private isConnected = false;
 
   constructor(private configService: ConfigService) {
     this.convexUrl = this.configService.get<string>('CONVEX_DEPLOYMENT_URL') || '';
@@ -13,14 +15,21 @@ export class ConvexService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit() {
+    if (!this.convexUrl) {
+      this.logger.warn('Convex deployment URL not configured. Set CONVEX_DEPLOYMENT_URL in .env');
+      return;
+    }
+
     try {
       const clientModule = await import('convex/browser');
       const ConvexClient = clientModule.ConvexClient;
       if (ConvexClient) {
         this.client = new ConvexClient(this.convexUrl);
+        this.isConnected = true;
+        this.logger.log('Convex client initialized successfully');
       }
     } catch (error) {
-      console.warn('Convex client not available. Please install convex package:', error);
+      this.logger.error('Failed to initialize Convex client:', error);
     }
   }
 
@@ -30,13 +39,24 @@ export class ConvexService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  isConfigured(): boolean {
+    return !!this.convexUrl && !!this.adminKey;
+  }
+
+  isHealthy(): boolean {
+    return this.isConnected;
+  }
+
   getClient() {
+    if (!this.client) {
+      throw new Error('Convex client not initialized. Ensure CONVEX_DEPLOYMENT_URL and CONVEX_ADMIN_KEY are set.');
+    }
     return this.client;
   }
 
   async query<T = unknown>(queryName: string, args?: Record<string, unknown>): Promise<T> {
     if (!this.client) {
-      throw new Error('Convex client not initialized');
+      throw new Error('Convex client not initialized. Ensure CONVEX_DEPLOYMENT_URL and CONVEX_ADMIN_KEY are set.');
     }
     const client = this.client as { query: (name: string, args?: Record<string, unknown>) => Promise<unknown> };
     return client.query(queryName, args) as Promise<T>;
@@ -44,7 +64,7 @@ export class ConvexService implements OnModuleInit, OnModuleDestroy {
 
   async mutation<T = unknown>(mutationName: string, args?: Record<string, unknown>): Promise<T> {
     if (!this.client) {
-      throw new Error('Convex client not initialized');
+      throw new Error('Convex client not initialized. Ensure CONVEX_DEPLOYMENT_URL and CONVEX_ADMIN_KEY are set.');
     }
     const client = this.client as { mutation: (name: string, args?: Record<string, unknown>) => Promise<unknown> };
     return client.mutation(mutationName, args) as Promise<T>;

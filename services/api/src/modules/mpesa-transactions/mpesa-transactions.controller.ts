@@ -7,13 +7,17 @@ import {
   Body,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { MpesaTransactionsService } from './mpesa-transactions.service';
 import { UploadMpesaCsvDto, MatchTransactionDto, MpesaTransactionQueryDto, MatchType } from './dto/mpesa-transaction.dto';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 
 @ApiTags('M-Pesa Transactions')
 @Controller('mpesa')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 export class MpesaTransactionsController {
   constructor(private readonly mpesaService: MpesaTransactionsService) {}
 

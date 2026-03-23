@@ -1,6 +1,7 @@
-import { Controller, Post, Get, Body, Query, Headers, Ip } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Post, Get, Body, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { WhatsAppService } from './whatsapp.service';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 
 class WebhookPayload {
   object: string;
@@ -74,6 +75,7 @@ export class WhatsAppController {
   @Post('send')
   @ApiOperation({ summary: 'Send a WhatsApp message' })
   @ApiResponse({ status: 200, description: 'Message sent' })
+  @UseGuards(JwtAuthGuard)
   sendMessage(@Body() dto: SendMessageDto) {
     return this.whatsappService.sendMessage(dto.phoneNumber, dto.message);
   }

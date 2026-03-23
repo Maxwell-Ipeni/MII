@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/:path*"
+  to = "/:path*"
+  status = 200
+
+[[redirects]]
+  from = "/_next/static/:path"
+  to = "/_next/static/:path"
+  status = 200

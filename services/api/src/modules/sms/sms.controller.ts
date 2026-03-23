@@ -1,6 +1,7 @@
-import { Controller, Post, Body, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { SmsService } from './sms.service';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 
 class SendSmsDto {
   phoneNumber: string;
@@ -20,6 +21,8 @@ class BulkReminderDto {
 
 @ApiTags('SMS')
 @Controller('sms')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 export class SmsController {
   constructor(private readonly smsService: SmsService) {}
 

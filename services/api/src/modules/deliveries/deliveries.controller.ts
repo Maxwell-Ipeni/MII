@@ -7,13 +7,17 @@ import {
   Body,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { DeliveriesService } from './deliveries.service';
 import { CreateDeliveryDto, CourierQuoteDto, AssignCourierDto, UpdateDeliveryStatusDto, DeliveryQueryDto } from './dto/delivery.dto';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 
 @ApiTags('Deliveries')
 @Controller('deliveries')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 export class DeliveriesController {
   constructor(private readonly deliveriesService: DeliveriesService) {}
 
